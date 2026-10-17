@@ -1,0 +1,386 @@
+/* =================================
+   CHATBOT POSITION
+================================= */
+
+.chatbot-widget {
+  position: fixed;
+  right: 28px;
+  bottom: 90px;
+  z-index: 99999;
+  font-family: Arial, sans-serif;
+}
+
+.chatbot-launcher {
+  position: relative;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+/* =================================
+   AI ASSISTANT TOOLTIP
+================================= */
+
+.chatbot-tooltip {
+  position: absolute;
+  right: 78px;
+  top: 50%;
+  transform: translateY(-50%);
+
+  padding: 10px 15px;
+
+  background: #172554;
+  color: #ffffff;
+
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+
+  border-radius: 12px;
+  box-shadow: 0 5px 18px rgba(15, 23, 42, 0.2);
+}
+
+.chatbot-tooltip::after {
+  content: "";
+  position: absolute;
+  right: -6px;
+  top: 50%;
+
+  width: 12px;
+  height: 12px;
+
+  background: #172554;
+  transform: translateY(-50%) rotate(45deg);
+}
+
+/* =================================
+   FLOATING ROBOT BUTTON
+================================= */
+
+.chatbot-toggle {
+  position: relative;
+
+  width: 70px;
+  height: 70px;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  padding: 5px;
+
+  border: 3px solid #ffffff;
+  border-radius: 50%;
+
+  background: linear-gradient(
+    145deg,
+    #60a5fa,
+    #2563eb,
+    #4338ca
+  );
+
+  cursor: pointer;
+
+  box-shadow:
+    0 6px 20px rgba(37, 99, 235, 0.35),
+    inset 0 0 0 2px rgba(255, 255, 255, 0.2);
+
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+.chatbot-toggle:hover {
+  transform: scale(1.08);
+
+  box-shadow:
+    0 10px 28px rgba(37, 99, 235, 0.45),
+    inset 0 0 0 2px rgba(255, 255, 255, 0.3);
+}
+
+.chatbot-launcher-logo {
+  width: 100%;
+  height: 100%;
+
+  object-fit: contain;
+
+  border-radius: 50%;
+  background: #eff6ff;
+}
+
+.chatbot-fallback-icon {
+  font-size: 34px;
+}
+
+.toggle-close-icon {
+  color: #ffffff;
+  font-size: 26px;
+}
+
+/* Notification dot */
+
+.chatbot-notification {
+  position: absolute;
+  top: 0;
+  right: 0;
+
+  width: 15px;
+  height: 15px;
+
+  background: #ef4444;
+
+  border: 2px solid #ffffff;
+  border-radius: 50%;
+}
+
+/* =================================
+   CHAT WINDOW
+================================= */
+
+.chatbot-window {
+  width: 360px;
+  height: 470px;
+
+  margin-bottom: 16px;
+
+  display: flex;
+  flex-direction: column;
+
+  overflow: hidden;
+
+  background: #ffffff;
+
+  border: 1px solid #dbeafe;
+  border-radius: 20px;
+
+  box-shadow: 0 15px 45px rgba(15, 23, 42, 0.2);
+}
+
+/* =================================
+   CHAT HEADER
+================================= */
+
+.chatbot-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 12px;
+  padding: 15px;
+
+  background: linear-gradient(120deg, #2563eb, #4338ca);
+  color: #ffffff;
+
+  flex-shrink: 0;
+}
+
+.chatbot-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.chatbot-header-logo {
+  width: 42px;
+  height: 42px;
+
+  object-fit: contain;
+
+  border-radius: 50%;
+  background: #eff6ff;
+}
+
+.chatbot-header h3 {
+  margin: 0 0 5px;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.chatbot-header p {
+  margin: 0;
+  font-size: 12px;
+  color: #dbeafe;
+}
+
+.status-dot {
+  display: inline-block;
+
+  width: 7px;
+  height: 7px;
+
+  margin-right: 5px;
+
+  background: #4ade80;
+  border-radius: 50%;
+}
+
+.chatbot-close {
+  width: 34px;
+  height: 34px;
+
+  border: none;
+  border-radius: 50%;
+
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.chatbot-close:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* =================================
+   MESSAGES
+================================= */
+
+.chatbot-messages {
+  flex: 1;
+  min-height: 0;
+
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  overflow-y: auto;
+
+  padding: 15px;
+
+  background: #f8fafc;
+  scroll-behavior: smooth;
+}
+
+.chat-message {
+  max-width: 85%;
+
+  padding: 11px 13px;
+
+  border-radius: 14px;
+
+  font-size: 13px;
+  line-height: 1.6;
+
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.chat-message.assistant {
+  align-self: flex-start;
+
+  color: #1e293b;
+  background: #e2e8f0;
+
+  border-bottom-left-radius: 4px;
+}
+
+.chat-message.user {
+  align-self: flex-end;
+
+  color: #ffffff;
+  background: #2563eb;
+
+  border-bottom-right-radius: 4px;
+}
+
+/* =================================
+   INPUT FORM
+================================= */
+
+.chatbot-input-form {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  padding: 12px;
+
+  border-top: 1px solid #e2e8f0;
+  background: #ffffff;
+
+  flex-shrink: 0;
+}
+
+.chatbot-input-form input {
+  flex: 1;
+  min-width: 0;
+
+  padding: 12px;
+
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+
+  outline: none;
+
+  font-family: inherit;
+  font-size: 13px;
+}
+
+.chatbot-input-form input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.chatbot-input-form button {
+  width: 42px;
+  height: 42px;
+
+  border: none;
+  border-radius: 12px;
+
+  background: #2563eb;
+  color: #ffffff;
+
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.chatbot-input-form button:hover:not(:disabled) {
+  background: #1d4ed8;
+}
+
+.chatbot-input-form button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* =================================
+   TABLET
+================================= */
+
+@media (max-width: 768px) {
+  .chatbot-widget {
+    right: 18px;
+    bottom: 85px;
+  }
+}
+
+/* =================================
+   MOBILE
+================================= */
+
+@media (max-width: 480px) {
+  .chatbot-widget {
+    right: 12px;
+    bottom: 80px;
+  }
+
+  .chatbot-toggle {
+    width: 62px;
+    height: 62px;
+  }
+
+  .chatbot-window {
+    width: calc(100vw - 24px);
+    height: min(470px, calc(100dvh - 140px));
+    min-height: 300px;
+
+    margin-bottom: 12px;
+
+    border-radius: 16px;
+  }
+
+  .chatbot-tooltip {
+    right: 70px;
+  }
+}

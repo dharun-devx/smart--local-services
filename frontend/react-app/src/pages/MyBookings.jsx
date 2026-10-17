@@ -15,9 +15,14 @@ export default function MyBookings({ navigate }) {
 
             const data = await api.getBookings();
 
-            setBookings(
-                Array.isArray(data) ? data : []
-            );
+            // Old booking -> New booking
+            const sortedBookings = Array.isArray(data)
+                ? [...data].sort((a, b) => {
+                    return Number(a.id) - Number(b.id);
+                })
+                : [];
+
+            setBookings(sortedBookings);
         } catch (err) {
             console.error(
                 "Failed to load bookings:",
@@ -128,7 +133,6 @@ export default function MyBookings({ navigate }) {
 
                 </div>
 
-
                 {/* Error */}
                 {error && (
                     <div
@@ -155,7 +159,6 @@ export default function MyBookings({ navigate }) {
                         </button>
                     </div>
                 )}
-
 
                 {/* Filter Tabs */}
                 <div
@@ -204,7 +207,6 @@ export default function MyBookings({ navigate }) {
                     ))}
 
                 </div>
-
 
                 {/* Loading */}
                 {loading ? (
@@ -270,11 +272,12 @@ export default function MyBookings({ navigate }) {
                     /* Booking List */
                     <div>
 
-                        {filtered.map((booking) => (
+                        {filtered.map((booking, index) => (
 
                             <BookingCard
                                 key={booking.id}
                                 booking={booking}
+                                serialNumber={index + 1}
                                 onCancel={handleCancel}
                             />
 

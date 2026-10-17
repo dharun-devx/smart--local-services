@@ -15,6 +15,11 @@ class UserProfile(models.Model):
         max_length=15
     )
 
+    address = models.TextField(
+        blank=True,
+        default=""
+    )
+
     password = models.CharField(
         max_length=128
     )

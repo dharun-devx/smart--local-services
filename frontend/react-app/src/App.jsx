@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
+import Chatbot from "./components/Chatbot";
 
 import Home from "./pages/Home";
 import Services from "./pages/Services";
@@ -346,6 +347,8 @@ export default function App() {
 
         <div className="app">
 
+            {/* Navigation bar */}
+
             <Navbar
                 activePage={activePage}
                 navigate={navigate}
@@ -354,6 +357,8 @@ export default function App() {
             />
 
 
+            {/* Current page */}
+
             <div className="main-content">
 
                 {renderCurrentPage()}
@@ -361,9 +366,16 @@ export default function App() {
             </div>
 
 
+            {/* Footer */}
+
             <Footer
                 navigate={navigate}
             />
+
+
+            {/* Floating AI Chatbot */}
+
+            <Chatbot />
 
         </div>
 

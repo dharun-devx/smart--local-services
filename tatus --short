@@ -1,0 +1,79 @@
+warning: in the working copy of 'backend/backend_core/__init__.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'frontend/react-app/src/App.jsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'frontend/react-app/src/components/BookingCard.jsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'frontend/react-app/src/pages/Booking.jsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'frontend/react-app/src/pages/Home.jsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'frontend/react-app/src/pages/Login.jsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'frontend/react-app/src/pages/MyBookings.jsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'frontend/react-app/src/pages/Profile.jsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'frontend/react-app/src/pages/Register.jsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'frontend/react-app/src/pages/Services.jsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'frontend/react-app/src/services/api.js', LF will be replaced by CRLF the next time Git touches it
+ assets/icons/calendar.svg                          |    6 [31m-[m
+ assets/icons/shield.svg                            |    3 [31m-[m
+ assets/icons/star.svg                              |    3 [31m-[m
+ assets/icons/tools.svg                             |    3 [31m-[m
+ assets/icons/user.svg                              |    4 [31m-[m
+ assets/images/hero-banner.svg                      |   15 [31m-[m
+ backend/backend_core/__init__.py                   |    3 [32m+[m
+ .../__pycache__/__init__.cpython-314.pyc           |  Bin [31m164[m -> [32m252[m bytes
+ .../__pycache__/settings.cpython-314.pyc           |  Bin [31m2699[m -> [32m3032[m bytes
+ .../backend_core/__pycache__/urls.cpython-314.pyc  |  Bin [31m670[m -> [32m751[m bytes
+ backend/backend_core/settings.py                   |  156 [32m++[m[31m-[m
+ backend/backend_core/urls.py                       |    8 [32m+[m
+ .../__pycache__/serializers.cpython-314.pyc        |  Bin [31m941[m -> [32m2965[m bytes
+ backend/bookings/serializers.py                    |   59 [32m+[m[31m-[m
+ backend/db.sqlite3                                 |  Bin [31m188416[m -> [32m188416[m bytes
+ backend/users/__pycache__/models.cpython-314.pyc   |  Bin [31m1166[m -> [32m1270[m bytes
+ .../users/__pycache__/serializers.cpython-314.pyc  |  Bin [31m955[m -> [32m964[m bytes
+ backend/users/__pycache__/urls.cpython-314.pyc     |  Bin [31m527[m -> [32m820[m bytes
+ backend/users/__pycache__/views.cpython-314.pyc    |  Bin [31m1013[m -> [32m7692[m bytes
+ backend/users/models.py                            |    5 [32m+[m
+ backend/users/serializers.py                       |    1 [32m+[m
+ backend/users/urls.py                              |   40 [32m+[m
+ backend/users/views.py                             |  457 [32m++++++[m[31m-[m
+ frontend/react-app/src/App.jsx                     |   12 [32m+[m
+ frontend/react-app/src/components/BookingCard.jsx  |  209 [32m++[m[31m--[m
+ frontend/react-app/src/pages/Booking.jsx           | 1186 [32m++++++++++++++[m[31m----[m
+ frontend/react-app/src/pages/Home.jsx              |  437 [32m++[m[31m-----[m
+ frontend/react-app/src/pages/Login.jsx             | 1107 [32m+++++++++++++[m[31m---[m
+ frontend/react-app/src/pages/MyBookings.jsx        |   17 [32m+[m[31m-[m
+ frontend/react-app/src/pages/Profile.jsx           |  669 [32m++++++++[m[31m--[m
+ frontend/react-app/src/pages/Register.jsx          |  720 [32m++++++++[m[31m---[m
+ frontend/react-app/src/pages/Services.jsx          |  537 [32m++++[m[31m----[m
+ frontend/react-app/src/services/api.js             |  429 [32m++++++[m[31m-[m
+ react-app/.gitignore                               |   24 [31m-[m
+ react-app/.oxlintrc.json                           |    8 [31m-[m
+ react-app/README.md                                |   16 [31m-[m
+ react-app/package-lock.json                        | 1316 [31m-------------------[m
+ react-app/package.json                             |   23 [31m-[m
+ react-app/public/favicon.svg                       |    1 [31m-[m
+ react-app/public/icons.svg                         |   24 [31m-[m
+ react-app/src/App.css                              |  757 [31m-----------[m
+ react-app/src/App.jsx                              |  372 [31m------[m
+ react-app/src/assets/hero.png                      |  Bin [31m13057[m -> [32m0[m bytes
+ react-app/src/assets/icons/calendar.svg            |    6 [31m-[m
+ react-app/src/assets/icons/shield.svg              |    3 [31m-[m
+ react-app/src/assets/icons/star.svg                |    3 [31m-[m
+ react-app/src/assets/icons/tools.svg               |    3 [31m-[m
+ react-app/src/assets/icons/user.svg                |    4 [31m-[m
+ react-app/src/assets/images/hero-banner.svg        |   15 [31m-[m
+ react-app/src/assets/react.svg                     |    1 [31m-[m
+ react-app/src/assets/vite.svg                      |    1 [31m-[m
+ react-app/src/components/BookingCard.jsx           |  314 [31m-----[m
+ react-app/src/components/Footer.jsx                |  114 [31m--[m
+ react-app/src/components/Navbar.jsx                |  184 [31m---[m
+ react-app/src/components/ServiceCard.jsx           |   59 [31m-[m
+ react-app/src/index.css                            | 1318 [31m--------------------[m
+ react-app/src/main.jsx                             |   27 [31m-[m
+ react-app/src/pages/Booking.jsx                    | 1188 [31m------------------[m
+ react-app/src/pages/Home.jsx                       |  801 [31m------------[m
+ react-app/src/pages/Login.jsx                      |  181 [31m---[m
+ react-app/src/pages/MyBookings.jsx                 |  291 [31m-----[m
+ react-app/src/pages/Profile.jsx                    |  170 [31m---[m
+ react-app/src/pages/Register.jsx                   |  197 [31m---[m
+ react-app/src/pages/ServiceDetails.jsx             |  559 [31m---------[m
+ react-app/src/pages/Services.jsx                   |  536 [31m--------[m
+ react-app/src/services/api.js                      |  381 [31m------[m
+ react-app/vite.config.js                           |    7 [31m-[m
+ 67 files changed, 4526 insertions(+), 10464 deletions(-)

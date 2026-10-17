@@ -1,18 +1,147 @@
-import React, { useState, useEffect } from "react";
-import { getServices, getUsers, createBooking } from "../services/api";
+import React, { useState, useEffect, useMemo } from "react";
 
-export default function Booking({ navigate, user, params }) {
+import {
+    getServices,
+    createBooking
+} from "../services/api";
 
-    const [services, setServices] = useState([]);
+
+// =====================================
+// TIME SLOTS
+// =====================================
+
+const TIME_SLOTS = [
+    "08:30 AM",
+    "10:00 AM",
+    "11:30 AM",
+    "02:00 PM",
+    "04:00 PM",
+    "06:00 PM"
+];
+
+
+// =====================================
+// GET LOCAL DATE
+// =====================================
+
+function getLocalDate() {
+    const date = new Date();
+
+    const year = date.getFullYear();
+
+    const month = String(
+        date.getMonth() + 1
+    ).padStart(2, "0");
+
+    const day = String(
+        date.getDate()
+    ).padStart(2, "0");
+
+    return `${year}-${month}-${day}`;
+}
+
+
+// =====================================
+// TIME TO MINUTES
+// =====================================
+
+function timeToMinutes(time) {
+    if (!time) {
+        return 0;
+    }
+
+    const [timePart, modifier] = time.split(" ");
+
+    let [hours, minutes] = timePart
+        .split(":")
+        .map(Number);
+
+    if (modifier === "PM" && hours !== 12) {
+        hours += 12;
+    }
+
+    if (modifier === "AM" && hours === 12) {
+        hours = 0;
+    }
+
+    return hours * 60 + minutes;
+}
+
+
+// =====================================
+// CURRENT TIME
+// =====================================
+
+function getCurrentMinutes() {
+    const now = new Date();
+
+    return (
+        now.getHours() * 60 +
+        now.getMinutes()
+    );
+}
+
+
+// =====================================
+// CONVERT TIME
+// =====================================
+
+function convertTimeTo24Hour(time) {
+    if (!time) {
+        return "00:00:00";
+    }
+
+    const [timePart, modifier] =
+        time.split(" ");
+
+    let [hours, minutes] =
+        timePart.split(":");
+
+    if (
+        modifier === "PM" &&
+        hours !== "12"
+    ) {
+        hours = String(
+            Number(hours) + 12
+        );
+    }
+
+    if (
+        modifier === "AM" &&
+        hours === "12"
+    ) {
+        hours = "00";
+    }
+
+    return `${hours.padStart(2, "0")}:${minutes}:00`;
+}
+
+
+// =====================================
+// BOOKING COMPONENT
+// =====================================
+
+export default function Booking({
+    navigate,
+    user,
+    params
+}) {
+
+    // =====================================
+    // STATES
+    // =====================================
+
+    const [services, setServices] =
+        useState([]);
 
     const [selectedServiceId, setSelectedServiceId] =
         useState(params?.serviceId || "");
 
     const [bookingDate, setBookingDate] =
-        useState(new Date().toISOString().split("T")[0]);
+        useState(getLocalDate());
 
     const [selectedSlot, setSelectedSlot] =
-        useState("10:00 AM");
+        useState("");
 
     const [name, setName] =
         useState(user?.name || "");
@@ -41,6 +170,51 @@ export default function Booking({ navigate, user, params }) {
     const [loading, setLoading] =
         useState(true);
 
+    const [timeTick, setTimeTick] =
+        useState(0);
+
+
+    // =====================================
+    // LOGIN CHECK
+    // =====================================
+
+    useEffect(() => {
+
+        if (!user) {
+
+            navigate("login");
+
+        }
+
+    }, [user, navigate]);
+
+
+    // =====================================
+    // UPDATE USER DETAILS
+    // =====================================
+
+    useEffect(() => {
+
+        if (user?.name) {
+            setName(user.name);
+        }
+
+        if (user?.email) {
+            setEmail(user.email);
+        }
+
+        if (user?.phone) {
+
+            setPhone(
+                String(user.phone)
+                    .replace(/\D/g, "")
+                    .slice(0, 10)
+            );
+
+        }
+
+    }, [user]);
+
 
     // =====================================
     // LOAD SERVICES
@@ -52,21 +226,76 @@ export default function Booking({ navigate, user, params }) {
 
             try {
 
-                const data = await getServices();
+                setLoading(true);
 
-                setServices(data);
+                const data =
+                    await getServices();
+
+                const serviceList =
+                    Array.isArray(data)
+                        ? data
+                        : [];
+
+                setServices(serviceList);
+
+
+                // =================================
+                // SERVICE FROM PAGE
+                // =================================
 
                 if (params?.serviceId) {
 
-                    setSelectedServiceId(
-                        String(params.serviceId)
-                    );
+                    const requestedService =
+                        serviceList.find(
+                            (service) =>
+                                String(service.id) ===
+                                String(params.serviceId)
+                        );
 
-                } else if (data.length > 0) {
+                    if (requestedService) {
 
-                    setSelectedServiceId(
-                        String(data[0].id)
-                    );
+                        setSelectedServiceId(
+                            String(
+                                requestedService.id
+                            )
+                        );
+
+                    }
+
+                } else {
+
+                    // =================================
+                    // DEFAULT SERVICE = CLEANING
+                    // =================================
+
+                    const cleaningService =
+                        serviceList.find(
+                            (service) =>
+                                service.name
+                                    ?.trim()
+                                    .toLowerCase() ===
+                                "cleaning"
+                        );
+
+                    if (cleaningService) {
+
+                        setSelectedServiceId(
+                            String(
+                                cleaningService.id
+                            )
+                        );
+
+                    } else if (
+                        serviceList.length > 0
+                    ) {
+
+                        setSelectedServiceId(
+                            String(
+                                serviceList[0].id
+                            )
+                        );
+
+                    }
 
                 }
 
@@ -92,7 +321,7 @@ export default function Booking({ navigate, user, params }) {
 
         loadServices();
 
-    }, [params]);
+    }, [params?.serviceId]);
 
 
     // =====================================
@@ -104,9 +333,7 @@ export default function Booking({ navigate, user, params }) {
             (service) =>
                 String(service.id) ===
                 String(selectedServiceId)
-        ) ||
-        services[0] ||
-        null;
+        ) || null;
 
 
     // =====================================
@@ -114,15 +341,154 @@ export default function Booking({ navigate, user, params }) {
     // =====================================
 
     const basePrice =
-        Number(currentService?.price || 499);
+        Number(
+            currentService?.price || 0
+        );
 
     const tax =
-        Math.round(basePrice * 0.05);
+        Math.round(
+            basePrice * 0.05
+        );
 
     const platformFee = 49;
 
     const totalAmount =
-        basePrice + tax + platformFee;
+        basePrice +
+        tax +
+        platformFee;
+
+
+    // =====================================
+    // AVAILABLE SLOTS
+    // =====================================
+
+    const availableSlots = useMemo(() => {
+
+        void timeTick;
+
+        // Future date
+        if (
+            bookingDate &&
+            bookingDate !== getLocalDate()
+        ) {
+
+            return TIME_SLOTS;
+
+        }
+
+        // Today
+        const currentMinutes =
+            getCurrentMinutes();
+
+        return TIME_SLOTS.filter(
+            (slot) =>
+                timeToMinutes(slot) >
+                currentMinutes
+        );
+
+    }, [bookingDate, timeTick]);
+
+
+    // =====================================
+    // AUTO SELECT SLOT
+    // =====================================
+
+    useEffect(() => {
+
+        if (
+            selectedSlot &&
+            availableSlots.includes(
+                selectedSlot
+            )
+        ) {
+
+            return;
+
+        }
+
+        if (
+            availableSlots.length > 0
+        ) {
+
+            setSelectedSlot(
+                availableSlots[0]
+            );
+
+        } else {
+
+            setSelectedSlot("");
+
+        }
+
+    }, [
+        availableSlots,
+        selectedSlot
+    ]);
+
+
+    // =====================================
+    // REFRESH TIME EVERY MINUTE
+    // =====================================
+
+    useEffect(() => {
+
+        const interval =
+            setInterval(() => {
+
+                setTimeTick(
+                    (value) => value + 1
+                );
+
+            }, 60000);
+
+        return () => {
+            clearInterval(interval);
+        };
+
+    }, []);
+
+
+    // =====================================
+    // DATE CHANGE
+    // =====================================
+
+    const handleDateChange = (e) => {
+
+        setBookingDate(
+            e.target.value
+        );
+
+        setErrors(
+            (previous) => ({
+                ...previous,
+                date: "",
+                time: "",
+                form: ""
+            })
+        );
+
+    };
+
+
+    // =====================================
+    // SERVICE CHANGE
+    // =====================================
+
+    const handleServiceChange = (e) => {
+
+        setSelectedServiceId(
+            e.target.value
+        );
+
+        setErrors(
+            (previous) => ({
+                ...previous,
+                service: "",
+                form: ""
+            })
+        );
+
+    };
 
 
     // =====================================
@@ -136,6 +502,10 @@ export default function Booking({ navigate, user, params }) {
         const newErrors = {};
 
 
+        // =================================
+        // NAME
+        // =================================
+
         if (!name.trim()) {
 
             newErrors.name =
@@ -144,9 +514,18 @@ export default function Booking({ navigate, user, params }) {
         }
 
 
+        // =================================
+        // EMAIL
+        // =================================
+
+        const cleanEmail =
+            email.trim().toLowerCase();
+
         if (
-            !email.trim() ||
-            !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+            !cleanEmail ||
+            !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
+                cleanEmail
+            )
         ) {
 
             newErrors.email =
@@ -155,16 +534,26 @@ export default function Booking({ navigate, user, params }) {
         }
 
 
+        // =================================
+        // PHONE
+        // =================================
+
+        const cleanPhone =
+            phone.replace(/\D/g, "");
+
         if (
-            !phone.trim() ||
-            phone.replace(/\D/g, "").length < 10
+            cleanPhone.length !== 10
         ) {
 
             newErrors.phone =
-                "Valid phone number is required.";
+                "Valid 10-digit phone number is required.";
 
         }
 
+
+        // =================================
+        // ADDRESS
+        // =================================
 
         if (!address.trim()) {
 
@@ -174,6 +563,10 @@ export default function Booking({ navigate, user, params }) {
         }
 
 
+        // =================================
+        // DATE
+        // =================================
+
         if (!bookingDate) {
 
             newErrors.date =
@@ -182,17 +575,59 @@ export default function Booking({ navigate, user, params }) {
         }
 
 
+        // =================================
+        // SERVICE
+        // =================================
+
         if (!currentService) {
 
-            newErrors.form =
+            newErrors.service =
                 "Please select a service.";
 
         }
 
 
-        if (Object.keys(newErrors).length > 0) {
+        // =================================
+        // TIME
+        // =================================
+
+        if (!selectedSlot) {
+
+            newErrors.time =
+                "Please select an available time slot.";
+
+        }
+
+
+        // =================================
+        // SHOW VALIDATION ERRORS
+        // =================================
+
+        if (
+            Object.keys(newErrors).length > 0
+        ) {
 
             setErrors(newErrors);
+
+            return;
+
+        }
+
+
+        // =================================
+        // CHECK PAST TIME
+        // =================================
+
+        if (
+            bookingDate === getLocalDate() &&
+            timeToMinutes(selectedSlot) <=
+                getCurrentMinutes()
+        ) {
+
+            setErrors({
+                time:
+                    "This time slot has already passed. Please select another slot."
+            });
 
             return;
 
@@ -206,90 +641,63 @@ export default function Booking({ navigate, user, params }) {
 
         try {
 
-            /*
-             * Current Django Booking model requires:
-             *
-             * user
-             * service
-             * name
-             * phone
-             * address
-             * service_date
-             * service_time
-             * description
-             */
+            // =================================
+            // CREATE BOOKING
+            // =================================
+            //
+            // Login already checked above.
+            //
+            // Backend receives email.
+            //
+            // Existing email:
+            // Existing user is used.
+            //
+            // New email:
+            // User is automatically created.
+            //
+            // Then booking is saved.
+            // =================================
 
-            let userId = user?.id;
+            const booking =
+                await createBooking({
 
+                    service:
+                        currentService.id,
 
-            // If no logged-in user ID, try to find
-            // the user using the email address.
-            if (!userId && email.trim()) {
+                    name:
+                        name.trim(),
 
-                try {
+                    email:
+                        cleanEmail,
 
-                    const users = await getUsers();
+                    phone:
+                        cleanPhone,
 
-                    const foundUser = users.find(
-                        (item) =>
-                            item.email?.toLowerCase() ===
-                            email.trim().toLowerCase()
-                    );
+                    address:
+                        address.trim(),
 
-                    if (foundUser) {
+                    service_date:
+                        bookingDate,
 
-                        userId = foundUser.id;
+                    service_time:
+                        convertTimeTo24Hour(
+                            selectedSlot
+                        ),
 
-                    }
+                    description:
+                        instructions.trim()
 
-                } catch (userError) {
-
-                    console.error(
-                        "User lookup failed:",
-                        userError
-                    );
-
-                }
-
-            }
-
-
-            if (!userId) {
-
-                throw new Error(
-                    "Please login before booking a service."
-                );
-
-            }
+                });
 
 
-            const booking = await createBooking({
-
-                user: userId,
-
-                service: currentService.id,
-
-                name: name.trim(),
-
-                phone: phone.trim(),
-
-                address: address.trim(),
-
-                service_date: bookingDate,
-
-                service_time: convertTimeTo24Hour(
-                    selectedSlot
-                ),
-
-                description:
-                    instructions.trim()
-
-            });
-
+            // =================================
+            // BOOKING CONFIRMED
+            // =================================
 
             setConfirmedBooking({
 
-                id: booking.id,
+                id:
+                    booking.id,
 
                 serviceName:
                     currentService.name,
@@ -303,24 +711,52 @@ export default function Booking({ navigate, user, params }) {
                 address:
                     booking.address,
 
-                totalAmount
+                basePrice:
+                    basePrice,
+
+                tax:
+                    tax,
+
+                platformFee:
+                    platformFee,
+
+                totalAmount:
+                    totalAmount
 
             });
 
-
-        } catch (err) {
+        } catch (error) {
 
             console.error(
                 "Booking Error:",
-                err
+                error
             );
 
+            let message =
+                error.message ||
+                "Failed to submit booking.";
+
+
+            // =================================
+            // ALREADY BOOKED
+            // =================================
+
+            if (
+                message
+                    .toLowerCase()
+                    .includes(
+                        "already booked"
+                    )
+            ) {
+
+                message =
+                    "This service is already booked for the selected date and time. Please choose another time.";
+
+            }
+
+
             setErrors({
-
-                form:
-                    err.message ||
-                    "Failed to submit booking."
-
+                form: message
             });
 
         } finally {
@@ -330,6 +766,94 @@ export default function Booking({ navigate, user, params }) {
         }
 
     };
+
+
+    // =====================================
+    // NOT LOGGED IN
+    // =====================================
+
+    if (!user) {
+
+        return (
+
+            <main
+                style={{
+                    minHeight: "60vh",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    padding: "3rem 1rem"
+                }}
+            >
+
+                <div
+                    className="card"
+                    style={{
+                        maxWidth: "450px",
+                        width: "100%",
+                        padding: "2.5rem 2rem",
+                        textAlign: "center"
+                    }}
+                >
+
+                    <div
+                        style={{
+                            fontSize: "3rem",
+                            marginBottom: "1rem"
+                        }}
+                    >
+                        🔐
+                    </div>
+
+
+                    <h2>
+                        Login Required
+                    </h2>
+
+
+                    <p
+                        style={{
+                            color:
+                                "var(--text-muted)",
+                            margin:
+                                "1rem 0 1.5rem",
+                            lineHeight: 1.6
+                        }}
+                    >
+                        Please login to your account
+                        before booking a service.
+                    </p>
+
+
+                    <button
+                        className="btn btn-primary btn-block"
+                        onClick={() =>
+                            navigate("login")
+                        }
+                    >
+                        Login to Continue
+                    </button>
+
+
+                    <button
+                        className="btn btn-secondary btn-block"
+                        style={{
+                            marginTop: "0.75rem"
+                        }}
+                        onClick={() =>
+                            navigate("register")
+                        }
+                    >
+                        Create New Account
+                    </button>
+
+                </div>
+
+            </main>
+
+        );
+
+    }
 
 
     // =====================================
@@ -347,9 +871,7 @@ export default function Booking({ navigate, user, params }) {
                     textAlign: "center"
                 }}
             >
-
                 Loading booking page...
-
             </div>
 
         );
@@ -358,7 +880,7 @@ export default function Booking({ navigate, user, params }) {
 
 
     // =====================================
-    // CONFIRMED
+    // CONFIRMATION
     // =====================================
 
     if (confirmedBooking) {
@@ -389,8 +911,10 @@ export default function Booking({ navigate, user, params }) {
 
                         <h2
                             style={{
-                                fontSize: "1.85rem",
-                                marginBottom: "0.5rem"
+                                fontSize:
+                                    "1.85rem",
+                                marginBottom:
+                                    "0.5rem"
                             }}
                         >
                             Booking Confirmed!
@@ -401,7 +925,8 @@ export default function Booking({ navigate, user, params }) {
                             style={{
                                 color:
                                     "var(--text-muted)",
-                                marginBottom: "1.5rem"
+                                marginBottom:
+                                    "1.5rem"
                             }}
                         >
                             Your service appointment
@@ -419,15 +944,20 @@ export default function Booking({ navigate, user, params }) {
 
                         <div
                             style={{
-                                textAlign: "left",
+                                textAlign:
+                                    "left",
                                 background:
                                     "var(--bg-main)",
-                                padding: "1.25rem",
+                                padding:
+                                    "1.25rem",
                                 borderRadius:
                                     "var(--radius-md)",
-                                marginBottom: "2rem",
-                                fontSize: "0.95rem",
-                                lineHeight: 1.7
+                                marginBottom:
+                                    "2rem",
+                                fontSize:
+                                    "0.95rem",
+                                lineHeight:
+                                    1.7
                             }}
                         >
 
@@ -435,30 +965,77 @@ export default function Booking({ navigate, user, params }) {
                                 <strong>
                                     Service:
                                 </strong>{" "}
-                                {confirmedBooking.serviceName}
+                                {
+                                    confirmedBooking.serviceName
+                                }
                             </div>
+
 
                             <div>
                                 <strong>
                                     Date & Time:
                                 </strong>{" "}
-                                {confirmedBooking.bookingDate}
-                                {" "}at{" "}
-                                {confirmedBooking.timeSlot}
+                                {
+                                    confirmedBooking.bookingDate
+                                }{" "}
+                                at{" "}
+                                {
+                                    confirmedBooking.timeSlot
+                                }
                             </div>
+
 
                             <div>
                                 <strong>
                                     Location:
                                 </strong>{" "}
-                                {confirmedBooking.address}
+                                {
+                                    confirmedBooking.address
+                                }
                             </div>
+
 
                             <div>
                                 <strong>
-                                    Estimated Amount:
+                                    Service Price:
                                 </strong>{" "}
-                                ₹{confirmedBooking.totalAmount}
+                                ₹
+                                {
+                                    confirmedBooking.basePrice
+                                }
+                            </div>
+
+
+                            <div>
+                                <strong>
+                                    GST (5%):
+                                </strong>{" "}
+                                ₹
+                                {
+                                    confirmedBooking.tax
+                                }
+                            </div>
+
+
+                            <div>
+                                <strong>
+                                    Platform & Safety Fee:
+                                </strong>{" "}
+                                ₹
+                                {
+                                    confirmedBooking.platformFee
+                                }
+                            </div>
+
+
+                            <div>
+                                <strong>
+                                    Total Amount:
+                                </strong>{" "}
+                                ₹
+                                {
+                                    confirmedBooking.totalAmount
+                                }
                             </div>
 
                         </div>
@@ -468,8 +1045,10 @@ export default function Booking({ navigate, user, params }) {
                             style={{
                                 display: "flex",
                                 gap: "1rem",
-                                justifyContent: "center",
-                                flexWrap: "wrap"
+                                justifyContent:
+                                    "center",
+                                flexWrap:
+                                    "wrap"
                             }}
                         >
 
@@ -509,11 +1088,17 @@ export default function Booking({ navigate, user, params }) {
     }
 
 
+    // =====================================
+    // MAIN BOOKING PAGE
+    // =====================================
+
     return (
 
         <div>
 
-            {/* ================= HEADER ================= */}
+            {/* =================================
+                HEADER
+            ================================= */}
 
             <section className="booking-header">
 
@@ -533,12 +1118,18 @@ export default function Booking({ navigate, user, params }) {
             </section>
 
 
-            {/* ================= FORM ================= */}
+            {/* =================================
+                CONTENT
+            ================================= */}
 
             <main className="booking-layout">
 
                 <div className="container booking-grid">
 
+
+                    {/* =================================
+                        BOOKING FORM
+                    ================================= */}
 
                     <div className="booking-form-card">
 
@@ -547,7 +1138,8 @@ export default function Booking({ navigate, user, params }) {
                             <div
                                 className="field-error visible"
                                 style={{
-                                    marginBottom: "1rem"
+                                    marginBottom:
+                                        "1rem"
                                 }}
                             >
                                 {errors.form}
@@ -557,12 +1149,16 @@ export default function Booking({ navigate, user, params }) {
 
 
                         <form
-                            onSubmit={handleSubmit}
+                            onSubmit={
+                                handleSubmit
+                            }
                             noValidate
                         >
 
 
-                            {/* STEP 1 */}
+                            {/* =================================
+                                STEP 1
+                            ================================= */}
 
                             <div className="booking-step-title">
 
@@ -580,7 +1176,8 @@ export default function Booking({ navigate, user, params }) {
                             <div
                                 className="form-group"
                                 style={{
-                                    marginBottom: "2rem"
+                                    marginBottom:
+                                        "2rem"
                                 }}
                             >
 
@@ -592,16 +1189,16 @@ export default function Booking({ navigate, user, params }) {
                                 <select
                                     className="form-input"
                                     style={{
-                                        paddingLeft: "1rem",
-                                        cursor: "pointer"
+                                        paddingLeft:
+                                            "1rem",
+                                        cursor:
+                                            "pointer"
                                     }}
                                     value={
                                         selectedServiceId
                                     }
-                                    onChange={(e) =>
-                                        setSelectedServiceId(
-                                            e.target.value
-                                        )
+                                    onChange={
+                                        handleServiceChange
                                     }
                                 >
 
@@ -616,7 +1213,9 @@ export default function Booking({ navigate, user, params }) {
                                                     service.id
                                                 }
                                             >
-                                                {service.name}
+                                                {
+                                                    service.name
+                                                }
                                             </option>
 
                                         )
@@ -624,10 +1223,23 @@ export default function Booking({ navigate, user, params }) {
 
                                 </select>
 
+
+                                {errors.service && (
+
+                                    <div className="field-error visible">
+                                        {
+                                            errors.service
+                                        }
+                                    </div>
+
+                                )}
+
                             </div>
 
 
-                            {/* STEP 2 */}
+                            {/* =================================
+                                STEP 2
+                            ================================= */}
 
                             <div className="booking-step-title">
 
@@ -644,9 +1256,12 @@ export default function Booking({ navigate, user, params }) {
 
                             <div
                                 style={{
-                                    marginBottom: "2rem"
+                                    marginBottom:
+                                        "2rem"
                                 }}
                             >
+
+                                {/* DATE */}
 
                                 <div
                                     className="form-group"
@@ -673,17 +1288,13 @@ export default function Booking({ navigate, user, params }) {
                                                 "1rem"
                                         }}
                                         min={
-                                            new Date()
-                                                .toISOString()
-                                                .split("T")[0]
+                                            getLocalDate()
                                         }
                                         value={
                                             bookingDate
                                         }
-                                        onChange={(e) =>
-                                            setBookingDate(
-                                                e.target.value
-                                            )
+                                        onChange={
+                                            handleDateChange
                                         }
                                     />
 
@@ -691,13 +1302,17 @@ export default function Booking({ navigate, user, params }) {
                                     {errors.date && (
 
                                         <div className="field-error visible">
-                                            {errors.date}
+                                            {
+                                                errors.date
+                                            }
                                         </div>
 
                                     )}
 
                                 </div>
 
+
+                                {/* TIME */}
 
                                 <div className="form-group">
 
@@ -706,49 +1321,96 @@ export default function Booking({ navigate, user, params }) {
                                     </label>
 
 
-                                    <div className="time-slots-grid">
+                                    {availableSlots.length ===
+                                    0 ? (
 
-                                        {[
-                                            "08:30 AM",
-                                            "10:00 AM",
-                                            "11:30 AM",
-                                            "02:00 PM",
-                                            "04:00 PM",
-                                            "06:00 PM"
-                                        ].map(
-                                            (slot) => (
+                                        <div
+                                            style={{
+                                                padding:
+                                                    "1rem",
+                                                background:
+                                                    "#fff7ed",
+                                                border:
+                                                    "1px solid #fed7aa",
+                                                borderRadius:
+                                                    "8px",
+                                                color:
+                                                    "#c2410c",
+                                                fontSize:
+                                                    "0.9rem"
+                                            }}
+                                        >
+                                            No time slots are
+                                            available for today.
+                                            Please select another
+                                            date.
+                                        </div>
 
-                                                <button
-                                                    key={
-                                                        slot
-                                                    }
-                                                    type="button"
-                                                    className={`slot-btn ${
-                                                        selectedSlot ===
-                                                        slot
-                                                            ? "selected"
-                                                            : ""
-                                                    }`}
-                                                    onClick={() =>
-                                                        setSelectedSlot(
+                                    ) : (
+
+                                        <div className="time-slots-grid">
+
+                                            {availableSlots.map(
+                                                (slot) => (
+
+                                                    <button
+                                                        key={
                                                             slot
-                                                        )
-                                                    }
-                                                >
-                                                    {slot}
-                                                </button>
+                                                        }
+                                                        type="button"
+                                                        className={`slot-btn ${
+                                                            selectedSlot ===
+                                                            slot
+                                                                ? "selected"
+                                                                : ""
+                                                        }`}
+                                                        onClick={() => {
 
-                                            )
-                                        )}
+                                                            setSelectedSlot(
+                                                                slot
+                                                            );
 
-                                    </div>
+                                                            setErrors(
+                                                                (
+                                                                    previous
+                                                                ) => ({
+                                                                    ...previous,
+                                                                    time:
+                                                                        ""
+                                                                })
+                                                            );
+
+                                                        }}
+                                                    >
+                                                        {slot}
+                                                    </button>
+
+                                                )
+                                            )}
+
+                                        </div>
+
+                                    )}
+
+
+                                    {errors.time && (
+
+                                        <div className="field-error visible">
+                                            {
+                                                errors.time
+                                            }
+                                        </div>
+
+                                    )}
 
                                 </div>
 
                             </div>
 
 
-                            {/* STEP 3 */}
+                            {/* =================================
+                                STEP 3
+                            ================================= */}
 
                             <div className="booking-step-title">
 
@@ -763,16 +1425,22 @@ export default function Booking({ navigate, user, params }) {
                             </div>
 
 
+                            {/* NAME + PHONE */}
+
                             <div
                                 style={{
-                                    display: "grid",
+                                    display:
+                                        "grid",
                                     gridTemplateColumns:
                                         "1fr 1fr",
-                                    gap: "1rem",
+                                    gap:
+                                        "1rem",
                                     marginBottom:
                                         "1.25rem"
                                 }}
                             >
+
+                                {/* NAME */}
 
                                 <div className="form-group">
 
@@ -805,13 +1473,17 @@ export default function Booking({ navigate, user, params }) {
                                     {errors.name && (
 
                                         <div className="field-error visible">
-                                            {errors.name}
+                                            {
+                                                errors.name
+                                            }
                                         </div>
 
                                     )}
 
                                 </div>
 
+
+                                {/* PHONE */}
 
                                 <div className="form-group">
 
@@ -822,6 +1494,8 @@ export default function Booking({ navigate, user, params }) {
 
                                     <input
                                         type="tel"
+                                        inputMode="numeric"
+                                        maxLength="10"
                                         className={`form-input ${
                                             errors.phone
                                                 ? "is-invalid"
@@ -831,20 +1505,35 @@ export default function Booking({ navigate, user, params }) {
                                             paddingLeft:
                                                 "1rem"
                                         }}
-                                        placeholder="9876543210"
+                                        placeholder="Enter 10-digit phone number"
                                         value={phone}
-                                        onChange={(e) =>
-                                            setPhone(
+                                        onChange={(e) => {
+
+                                            const value =
                                                 e.target.value
-                                            )
-                                        }
+                                                    .replace(
+                                                        /\D/g,
+                                                        ""
+                                                    )
+                                                    .slice(
+                                                        0,
+                                                        10
+                                                    );
+
+                                            setPhone(
+                                                value
+                                            );
+
+                                        }}
                                     />
 
 
                                     {errors.phone && (
 
                                         <div className="field-error visible">
-                                            {errors.phone}
+                                            {
+                                                errors.phone
+                                            }
                                         </div>
 
                                     )}
@@ -853,6 +1542,8 @@ export default function Booking({ navigate, user, params }) {
 
                             </div>
 
+
+                            {/* EMAIL */}
 
                             <div
                                 className="form-group"
@@ -880,24 +1571,46 @@ export default function Booking({ navigate, user, params }) {
                                     }}
                                     placeholder="name@example.com"
                                     value={email}
-                                    onChange={(e) =>
+                                    onChange={(e) => {
+
                                         setEmail(
                                             e.target.value
-                                        )
-                                    }
+                                        );
+
+                                        if (
+                                            errors.email
+                                        ) {
+
+                                            setErrors(
+                                                (
+                                                    previous
+                                                ) => ({
+                                                    ...previous,
+                                                    email:
+                                                        ""
+                                                })
+                                            );
+
+                                        }
+
+                                    }}
                                 />
 
 
                                 {errors.email && (
 
                                     <div className="field-error visible">
-                                        {errors.email}
+                                        {
+                                            errors.email
+                                        }
                                     </div>
 
                                 )}
 
                             </div>
 
+
+                            {/* ADDRESS */}
 
                             <div
                                 className="form-group"
@@ -921,8 +1634,10 @@ export default function Booking({ navigate, user, params }) {
                                     style={{
                                         padding:
                                             "0.75rem 1rem",
-                                        minHeight: "80px",
-                                        resize: "vertical"
+                                        minHeight:
+                                            "80px",
+                                        resize:
+                                            "vertical"
                                     }}
                                     placeholder="Apartment/Flat No, Street, Landmark, Pincode"
                                     value={address}
@@ -937,13 +1652,17 @@ export default function Booking({ navigate, user, params }) {
                                 {errors.address && (
 
                                     <div className="field-error visible">
-                                        {errors.address}
+                                        {
+                                            errors.address
+                                        }
                                     </div>
 
                                 )}
 
                             </div>
 
+
+                            {/* INSTRUCTIONS */}
 
                             <div
                                 className="form-group"
@@ -967,7 +1686,9 @@ export default function Booking({ navigate, user, params }) {
                                             "1rem"
                                     }}
                                     placeholder="Any additional instructions"
-                                    value={instructions}
+                                    value={
+                                        instructions
+                                    }
                                     onChange={(e) =>
                                         setInstructions(
                                             e.target.value
@@ -978,17 +1699,22 @@ export default function Booking({ navigate, user, params }) {
                             </div>
 
 
+                            {/* SUBMIT */}
+
                             <button
                                 type="submit"
                                 className="btn btn-primary btn-block btn-lg"
                                 disabled={
                                     submitting ||
-                                    !currentService
+                                    !currentService ||
+                                    !selectedSlot
                                 }
                             >
+
                                 {submitting
                                     ? "Confirming Appointment..."
                                     : "Confirm & Book Service"}
+
                             </button>
 
                         </form>
@@ -996,7 +1722,9 @@ export default function Booking({ navigate, user, params }) {
                     </div>
 
 
-                    {/* ================= SUMMARY ================= */}
+                    {/* =================================
+                        SUMMARY
+                    ================================= */}
 
                     <aside className="booking-summary-card">
 
@@ -1012,8 +1740,12 @@ export default function Booking({ navigate, user, params }) {
                                 <div className="selected-service-banner">
 
                                     <div className="summary-icon">
-                                        {currentService.icon ||
-                                            "🛠️"}
+
+                                        {
+                                            currentService.icon ||
+                                            "🛠️"
+                                        }
+
                                     </div>
 
 
@@ -1039,11 +1771,29 @@ export default function Booking({ navigate, user, params }) {
                                     <div className="summary-row">
 
                                         <span>
+                                            Service Date:
+                                        </span>
+
+                                        <strong>
+                                            {
+                                                bookingDate
+                                            }
+                                        </strong>
+
+                                    </div>
+
+
+                                    <div className="summary-row">
+
+                                        <span>
                                             Selected Time Slot:
                                         </span>
 
                                         <strong>
-                                            {selectedSlot}
+                                            {
+                                                selectedSlot ||
+                                                "Select a time"
+                                            }
                                         </strong>
 
                                     </div>
@@ -1118,12 +1868,16 @@ export default function Booking({ navigate, user, params }) {
                                             "1rem"
                                     }}
                                 >
+
                                     💵{" "}
+
                                     <strong>
                                         Pay After Service:
                                     </strong>{" "}
+
                                     Payment can be handled
                                     after the service.
+
                                 </p>
 
 
@@ -1149,40 +1903,4 @@ export default function Booking({ navigate, user, params }) {
         </div>
 
     );
-}
-
-
-// =====================================
-// TIME CONVERTER
-// =====================================
-
-function convertTimeTo24Hour(time) {
-
-    const [timePart, modifier] =
-        time.split(" ");
-
-    let [hours, minutes] =
-        timePart.split(":");
-
-    if (
-        modifier === "PM" &&
-        hours !== "12"
-    ) {
-
-        hours = String(
-            Number(hours) + 12
-        );
-
-    }
-
-    if (
-        modifier === "AM" &&
-        hours === "12"
-    ) {
-
-        hours = "00";
-
-    }
-
-    return `${hours}:${minutes}:00`;
 }

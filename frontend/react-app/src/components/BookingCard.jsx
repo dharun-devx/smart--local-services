@@ -2,13 +2,12 @@ import React from "react";
 
 export default function BookingCard({
     booking,
-    onCancel
+    onCancel,
+    serialNumber
 }) {
 
     const getBadgeClass = (status) => {
-
         switch (status) {
-
             case "Confirmed":
                 return "badge-success";
 
@@ -26,29 +25,22 @@ export default function BookingCard({
         }
     };
 
-
     const formatDate = (date) => {
-
         if (!date) {
             return "Date not available";
         }
 
-        const formattedDate =
-            new Date(date).toLocaleDateString(
-                "en-IN",
-                {
-                    day: "2-digit",
-                    month: "short",
-                    year: "numeric"
-                }
-            );
-
-        return formattedDate;
+        return new Date(date).toLocaleDateString(
+            "en-IN",
+            {
+                day: "2-digit",
+                month: "short",
+                year: "numeric"
+            }
+        );
     };
 
-
     const formatTime = (time) => {
-
         if (!time) {
             return "Time not available";
         }
@@ -62,41 +54,62 @@ export default function BookingCard({
         let hour = parseInt(parts[0], 10);
         const minute = parts[1];
 
-        const period =
-            hour >= 12 ? "PM" : "AM";
+        const period = hour >= 12 ? "PM" : "AM";
 
-        hour =
-            hour % 12 || 12;
+        hour = hour % 12 || 12;
 
         return `${hour}:${minute} ${period}`;
     };
 
-
+    // Get actual service name
     const getServiceName = () => {
 
-        if (
-            booking.service_name
-        ) {
+        if (booking.service_name) {
             return booking.service_name;
         }
 
-        if (
-            booking.serviceName
-        ) {
+        if (booking.serviceName) {
             return booking.serviceName;
         }
 
-        return `Service #${booking.service}`;
-    };
+        if (
+            booking.service &&
+            typeof booking.service === "object"
+        ) {
+            if (booking.service.name) {
+                return booking.service.name;
+            }
+        }
 
+        // Fallback based on service ID
+        const serviceNames = {
+            1: "Plumber",
+            2: "Electrician",
+            3: "Cleaning",
+            4: "Computer Repair",
+            5: "Vehicle Service",
+            6: "Home Repair",
+            7: "AC & Appliances",
+            8: "Carpentry",
+            9: "Painting"
+        };
+
+        const serviceId =
+            typeof booking.service === "object"
+                ? booking.service.id
+                : booking.service;
+
+        return (
+            serviceNames[serviceId] ||
+            "Local Service"
+        );
+    };
 
     const canCancel =
         booking.status === "Pending" ||
         booking.status === "Confirmed";
 
-
     return (
-
         <div
             className="card"
             style={{
@@ -116,17 +129,35 @@ export default function BookingCard({
             >
 
                 {/* LEFT SIDE */}
-
                 <div
                     style={{
                         display: "flex",
-                        alignItems: "center",
+                        alignItems: "flex-start",
                         gap: "1.25rem"
                     }}
                 >
 
-                    {/* SERVICE ICON */}
+                    {/* SERIAL NUMBER */}
+                    <div
+                        style={{
+                            minWidth: "36px",
+                            height: "36px",
+                            borderRadius: "50%",
+                            background: "var(--primary)",
+                            color: "#fff",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            fontWeight: 800,
+                            fontSize: "1rem",
+                            marginTop: "0.5rem"
+                        }}
+                    >
+                        {serialNumber}
+                    </div>
 
+
+                    {/* SERVICE ICON */}
                     <div
                         style={{
                             width: "56px",
@@ -138,7 +169,8 @@ export default function BookingCard({
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
-                            fontSize: "1.75rem"
+                            fontSize: "1.75rem",
+                            flexShrink: 0
                         }}
                     >
                         {booking.service_icon || "🛠️"}
@@ -146,29 +178,27 @@ export default function BookingCard({
 
 
                     {/* BOOKING DETAILS */}
-
                     <div>
 
+                        {/* SERVICE NAME */}
                         <h3
                             style={{
                                 fontSize: "1.2rem",
                                 fontWeight: 700,
-                                marginBottom:
-                                    "0.25rem"
+                                marginBottom: "0.25rem"
                             }}
                         >
+                            Service {serialNumber} -{" "}
                             {getServiceName()}
                         </h3>
 
 
+                        {/* DATE & TIME */}
                         <p
                             style={{
-                                color:
-                                    "var(--text-muted)",
-                                fontSize:
-                                    "0.9rem",
-                                marginBottom:
-                                    "0.25rem"
+                                color: "var(--text-muted)",
+                                fontSize: "0.9rem",
+                                marginBottom: "0.25rem"
                             }}
                         >
                             📅{" "}
@@ -182,14 +212,12 @@ export default function BookingCard({
                         </p>
 
 
+                        {/* ADDRESS */}
                         <p
                             style={{
-                                color:
-                                    "var(--text-muted)",
-                                fontSize:
-                                    "0.85rem",
-                                marginBottom:
-                                    "0.25rem"
+                                color: "var(--text-muted)",
+                                fontSize: "0.85rem",
+                                marginBottom: "0.25rem"
                             }}
                         >
                             📍{" "}
@@ -198,14 +226,12 @@ export default function BookingCard({
                         </p>
 
 
+                        {/* NAME */}
                         <p
                             style={{
-                                color:
-                                    "var(--text-muted)",
-                                fontSize:
-                                    "0.85rem",
-                                marginBottom:
-                                    "0.25rem"
+                                color: "var(--text-muted)",
+                                fontSize: "0.85rem",
+                                marginBottom: "0.25rem"
                             }}
                         >
                             👤{" "}
@@ -214,12 +240,11 @@ export default function BookingCard({
                         </p>
 
 
+                        {/* PHONE */}
                         <p
                             style={{
-                                color:
-                                    "var(--text-muted)",
-                                fontSize:
-                                    "0.85rem"
+                                color: "var(--text-muted)",
+                                fontSize: "0.85rem"
                             }}
                         >
                             📞{" "}
@@ -229,14 +254,11 @@ export default function BookingCard({
 
 
                         {/* REFERENCE */}
-
                         <span
                             style={{
                                 display: "inline-block",
-                                marginTop:
-                                    "0.5rem",
-                                fontSize:
-                                    "0.8rem",
+                                marginTop: "0.5rem",
+                                fontSize: "0.8rem",
                                 fontFamily:
                                     "var(--font-code)",
                                 color:
@@ -253,62 +275,49 @@ export default function BookingCard({
 
 
                 {/* RIGHT SIDE */}
-
                 <div
                     style={{
                         textAlign: "right",
                         display: "flex",
-                        flexDirection:
-                            "column",
-                        alignItems:
-                            "flex-end"
+                        flexDirection: "column",
+                        alignItems: "flex-end"
                     }}
                 >
 
                     {/* STATUS */}
-
                     <span
                         className={`badge ${getBadgeClass(
                             booking.status
                         )}`}
                     >
-                        {booking.status ||
-                            "Pending"}
+                        {booking.status || "Pending"}
                     </span>
 
 
                     {/* CANCEL BUTTON */}
-
-                    {canCancel &&
-                        onCancel && (
-
-                            <button
-                                type="button"
-                                className="btn btn-outline btn-sm"
-                                style={{
-                                    marginTop:
-                                        "0.75rem",
-                                    borderColor:
-                                        "var(--danger)",
-                                    color:
-                                        "var(--danger)"
-                                }}
-                                onClick={() =>
-                                    onCancel(
-                                        booking.id
-                                    )
-                                }
-                            >
-                                Cancel Booking
-                            </button>
-
-                        )}
+                    {canCancel && onCancel && (
+                        <button
+                            type="button"
+                            className="btn btn-outline btn-sm"
+                            style={{
+                                marginTop: "0.75rem",
+                                borderColor:
+                                    "var(--danger)",
+                                color:
+                                    "var(--danger)"
+                            }}
+                            onClick={() =>
+                                onCancel(booking.id)
+                            }
+                        >
+                            Cancel Booking
+                        </button>
+                    )}
 
                 </div>
 
             </div>
 
         </div>
-
     );
 }

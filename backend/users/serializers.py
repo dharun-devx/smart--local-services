@@ -13,6 +13,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "name",
             "email",
             "phone",
+            "address",
             "password",
             "created_at",
             "updated_at",
