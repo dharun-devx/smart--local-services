@@ -631,18 +631,42 @@ export function getCurrentUser() {
 
 export function setCurrentUser(user) {
 
-    localStorage.setItem(
-        "currentUser",
-        JSON.stringify(user)
-    );
+    try {
+
+        localStorage.setItem(
+            "currentUser",
+            JSON.stringify(user)
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Failed to save current user:",
+            error
+        );
+
+    }
+
 }
 
 
 export function logout() {
 
-    localStorage.removeItem(
-        "currentUser"
-    );
+    try {
+
+        localStorage.removeItem(
+            "currentUser"
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Failed to remove current user:",
+            error
+        );
+
+    }
+
 }
 
 
